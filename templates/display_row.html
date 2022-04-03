@@ -1,0 +1,44 @@
+<!doctype html>
+
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+	<title>{{ row['syndicobjectname'] }}</title>
+</head>
+<body>
+<h3>{{ row['syndicobjectname'] }}</h3>
+<address>
+	<i class="bi bi-envelope"> </i><strong>{{ row['detailidentadresseadr1'] }}	{{ row['detailidentadresseadr1suite'] }}</strong><br>
+	{{ row['detailidentadresseadr2'] }} {{ row['detailidentadresseadr3'] }}<br>
+	{{ ' '.join([row['detailidentadressecp'],row['detailidentadressecommune']]) }}<br>
+	{%if row['identtel'] %}<i class="bi bi-telephone-outbound"> </i><a href="tel:{{ row['identtel'] }}">{{ row['identtel'] }}</a><br>{% endif %}
+	{%if row['identportable'] %}<i class="bi bi-phone"> </i><a href="tel:{{ row['identportable'] }}">{{ row['identportable'] }}</a><br>{% endif %}
+</address>
+{% if row['identweb'] %}<a href="{{ row['identweb'] }}">Site web</a><br>{% endif %}
+<dl class="dl-horizontal">
+  
+  {% if row['detailidentdescriptioncommerciale'] %}<dt>Description</dt><dd>{{ '.<br>'.join(row['detailidentdescriptioncommerciale'].split('.')) }}</dd>{% endif %}
+</dl>
+
+
+<img class="img-responsive img-thumbnail" width="25%" src="{{ row['multimediaphoto'].split('|')[0] }}">
+<div>-----</div>
+
+<table>
+	{% for key, value in row.items() %}
+	<tr>
+    	<td>{{ key }} </td><td>{{ value }}</td>
+	</tr>
+	{% endfor %}
+</table>
+</body>
+</html>
