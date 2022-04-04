@@ -130,7 +130,8 @@ def render_html(ligne):
     return output
     
 carte = main()
-carte.save("index.html")
+carte.save("carte.html")
+print("Ouvrir le fichier 'carte.html' avec un navigateur web.")
     
             
 
