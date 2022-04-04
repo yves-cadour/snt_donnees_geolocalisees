@@ -15,24 +15,36 @@ def telecharger_donnes():
     """
     URL = "https://www.data.gouv.fr/fr/datasets/r/d7f3ddf4-2225-4ac2-9a1d-26971ce92969"
     if not local_file in os.listdir():
-        data = requests.get(url).content
+        data = requests.get(URL).content
         with open(local_file, 'wb') as csvfile:
             csvfile.write(data)
-
-def jls_extract_def(somme_latitude, lignes, somme_longitude):
-    moy_latitude = somme_latitude/len(lignes)
-    moy_longitude = somme_longitude/len(lignes)
-    return moy_latitude, moy_longitude
-
 
 def creer_carte():
     """
     Creer et retourne une carte Folium
     """
-    carte = Map(location=[0,0], width="%100", height="%100", zoom_start=8)
+    carte = Map(location=[0,0], width="%100", height="%100", zoom_start=10)
     minimap = MiniMap()
     carte.add_child(minimap)
-    # Creation des clusters et des couches
+    # Creation des calques et des clusters
+    #  Carte
+    #   |
+    #   +--+ Calque des 'gratuits'
+    #   |  |
+    #   |  +-- Cluster des 'gratuits'
+    #   |
+    #   +--+ Calque des 'payants'
+    #   |  |
+    #   |  +-- Cluster des 'payants'
+    #   |
+    #   +--+ Calque des 'Tarifs non communiqués'
+    #   |  |
+    #   |  +-- Cluster des 'Tarifs non communiqués'
+    #   |
+    #   +--+ Calque des 'Libre participation'
+    #      |
+    #      +-- Cluster des 'Libre participation'
+
     gratuit_layer = folium.FeatureGroup(name="Gratuit")
     gratuit_cluster = MarkerCluster().add_to(gratuit_layer)
     carte.add_child(gratuit_layer)
@@ -52,24 +64,30 @@ def creer_carte():
     carte.add_child(folium.map.LayerControl())
     somme_latitude = 0
     somme_longitude = 0
+    compteur = 0
     with open(local_file) as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         lignes = list(reader)
         for ligne in lignes:
-            #print(ligne)
             code_postal = ligne['detailidentadressecp']
             code_postal = int(''.join(code_postal.split(' ')))
-            if code_postal in range(29000,29200):
+            if code_postal in range(29000,29200):  # Modifiez l'intervalle si vous voulez plus ou moins de résultats.
                 latitude = ligne['gmaplatitude']
                 longitude = ligne['gmaplongitude']
-                somme_latitude += float(latitude)
-                somme_longitude += float(longitude)
                 tooltip = ligne['syndicobjectname']
+                # Rendu du popup
                 html = render_html(ligne)
                 iframe = IFrame(html)
                 popup = Popup(iframe, min_width=800, max_width=800)
+                # Rendu de l'icône du marker
                 icon = get_icon(ligne)
+
+                # Creation du marker
                 marker = Marker([latitude, longitude], icon=icon, popup=popup, tooltip=tooltip)
+                compteur += 1
+                somme_latitude += float(latitude)
+                somme_longitude += float(longitude)
+                # On enregistre le marker dans le bon cluster
                 if ligne['tarifentree'] == 'Gratuit':
                     marker.add_to(gratuit_cluster)
                 elif ligne['tarifentree'] == 'Payant':
@@ -78,8 +96,10 @@ def creer_carte():
                     marker.add_to(unknown_cluster)
                 else:
                     marker.add_to(libre_participation_layer)
-
-        carte.location = (lignes[0]['gmaplatitude'], lignes[0]['gmaplongitude'])
+        latitude_moyenne = somme_latitude/compteur
+        longitude_moyenne = somme_longitude/compteur
+        # On centre la carte sur la position moyenne
+        carte.location = (latitude_moyenne, longitude_moyenne)
     return carte
 
 def main():
@@ -91,28 +111,22 @@ def main():
     carte = creer_carte()
     return carte
     
-def get_icon(row):
+def get_icon(ligne):
     """
     Retourne l'icone adequat
+    ligne : un dictionnaire représentant une ligne des données
     """
-    if row['tarifentree'] == 'Gratuit':
-        icon=folium.Icon(color='red', icon='home', prefix='fa')
-    elif row['tarifentree'] == 'Payant':
-        icon=folium.Icon(color='green', icon='home', prefix='fa')
-    elif row['tarifentree'] == 'Tarifs non communiqués':
-        icon=folium.Icon(color='blue', icon='home', prefix='fa')
-    else:
-        icon=folium.Icon(color='black', icon='home', prefix='fa')
-    return icon
+    icone = folium.Icon()
+    return icone
         
-def render_html(row):
+def render_html(ligne):
     """
     Retourne le code html
     """
     file_loader = FileSystemLoader('templates')
     env = Environment(loader=file_loader)
-    template = env.get_template('display_row.html')
-    output = template.render(row=row)
+    template = env.get_template('popup.html')
+    output = template.render(ligne = ligne)
     return output
     
 carte = main()
