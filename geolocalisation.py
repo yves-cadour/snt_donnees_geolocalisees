@@ -116,7 +116,7 @@ def get_icon(ligne):
     Retourne l'icone adequat
     ligne : un dictionnaire représentant une ligne des données
     """
-    icone = folium.Icon()
+    icone = folium.Icon(color = 'red', icon = 'cloud', prefix = 'fa')
     return icone
         
 def render_html(ligne):
